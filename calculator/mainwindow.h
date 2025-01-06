@@ -149,11 +149,27 @@ private slots:
 
     void on_btnConvert_clicked();
 
+    void on_pushButton_3_clicked();
+
+    void on_btnback_clicked();
+
+    void on_btnUpdataHistory_clicked();
+
+    void on_btnHistoryClear_clicked();
+
 private:
     Ui::MainWindow *ui;
 
     QString convertBase(QString value, int fromBase, int toBase); // 进制转换函数
     QMap<QString, double> exchangeRates;  // 汇率表
     QMap<QString, double> exchanges;       //单位表
+
+
+    struct HistoryEntry {
+        QString expression;
+        QString result;
+        QString mode;
+    };
+    QList<HistoryEntry> history;
 };
 #endif // MAINWINDOW_H

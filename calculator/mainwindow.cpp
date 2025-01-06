@@ -121,9 +121,16 @@ QString MainWindow::calculation(){                          //计算处理
             result = operand1 / operand2;
         }
     }
-    QString message = QString("%1 %2 %3 = %4").arg(operand1).arg(code).arg(operand2).arg(result);
+    QString message = QString("%1 %2 %3").arg(operand1).arg(code).arg(operand2);
 
     ui->statusbar->showMessage(message);
+
+    // 记录历史
+    HistoryEntry entry;
+    entry.expression = message;
+    entry.result = QString::number(result);
+    entry.mode = "Standard"; // 根据当前模式设置
+    history.append(entry);
 
     return QString::number(result);
 }
@@ -360,88 +367,153 @@ void MainWindow::on_btnScientificMode_clicked()
 
 void MainWindow::on_btnSin_clicked()
 {
-
     if (!operand.isEmpty()) {
         double number = operand.toDouble();
         double radians = number * M_PI / 180.0;     // 将角度转换为弧度
-        operand = QString::number(sin(radians));    //因为计算是按弧度来计算的，不是角度所以要转换
-        ui->display->setText(operand);
+        operand = QString::number(sin(radians));    // 计算结果
+
+        // 记录历史
+        QString message = QString("sin(%1)").arg(number);  // 记录表达式
+        HistoryEntry entry;
+        entry.expression = message;
+        entry.result = operand;  // 结果
+        entry.mode = "Trigonometric"; // 设置当前模式
+        history.append(entry);
+
+        ui->display->setText(operand);  // 显示结果
     }
     ui->statusbar->showMessage(qobject_cast<QPushButton*>(sender())->text() + "  btn clicked");
 }
-
 
 void MainWindow::on_btnCos_clicked()
 {
     if (!operand.isEmpty()) {
         double number = operand.toDouble();
         double radians = number * M_PI / 180.0;     // 将角度转换为弧度
-        operand = QString::number(cos(radians));    //因为计算是按弧度来计算的，不是角度所以要转换
+        operand = QString::number(cos(radians));    // 计算结果
+
+        // 记录历史
+        QString message = QString("cos(%1)").arg(number);
+        HistoryEntry entry;
+        entry.expression = message;
+        entry.result = operand;
+        entry.mode = "Trigonometric";
+        history.append(entry);
+
         ui->display->setText(operand);
     }
     ui->statusbar->showMessage(qobject_cast<QPushButton*>(sender())->text() + "  btn clicked");
 }
-
 
 void MainWindow::on_btnTan_clicked()
 {
     if (!operand.isEmpty()) {
         double number = operand.toDouble();
         double radians = number * M_PI / 180.0;     // 将角度转换为弧度
-        operand = QString::number(tan(radians));    //因为计算是按弧度来计算的，不是角度所以要转换
+        operand = QString::number(tan(radians));    // 计算结果
+
+        // 记录历史
+        QString message = QString("tan(%1) ").arg(number);
+        HistoryEntry entry;
+        entry.expression = message;
+        entry.result = operand;
+        entry.mode = "Trigonometric";
+        history.append(entry);
+
         ui->display->setText(operand);
     }
     ui->statusbar->showMessage(qobject_cast<QPushButton*>(sender())->text() + "  btn clicked");
 }
-
 
 void MainWindow::on_btnLog_clicked()
 {
     if (!operand.isEmpty()) {
         double number = operand.toDouble();
-        operand = QString::number(log10(number));
+        operand = QString::number(log10(number)); // 计算结果
+
+        // 记录历史
+        QString message = QString("log(%1) ").arg(number);
+        HistoryEntry entry;
+        entry.expression = message;
+        entry.result = operand;
+        entry.mode = "Logarithmic";
+        history.append(entry);
+
         ui->display->setText(operand);
     }
     ui->statusbar->showMessage(qobject_cast<QPushButton*>(sender())->text() + "  btn clicked");
 }
-
 
 void MainWindow::on_btnLn_clicked()
 {
     if (!operand.isEmpty()) {
         double number = operand.toDouble();
-        operand = QString::number(log(number));
+        operand = QString::number(log(number)); // 计算结果
+
+        // 记录历史
+        QString message = QString("ln(%1) ").arg(number);
+        HistoryEntry entry;
+        entry.expression = message;
+        entry.result = operand;
+        entry.mode = "Logarithmic";
+        history.append(entry);
+
         ui->display->setText(operand);
     }
     ui->statusbar->showMessage(qobject_cast<QPushButton*>(sender())->text() + "  btn clicked");
 }
-
 
 void MainWindow::on_btnExp_clicked()
 {
     if (!operand.isEmpty()) {
         double number = operand.toDouble();
-        operand = QString::number(exp(number));
+        operand = QString::number(exp(number)); // 计算结果
+
+        // 记录历史
+        QString message = QString("exp(%1) ").arg(number);
+        HistoryEntry entry;
+        entry.expression = message;
+        entry.result = operand;
+        entry.mode = "Exponential";
+        history.append(entry);
+
         ui->display->setText(operand);
     }
     ui->statusbar->showMessage(qobject_cast<QPushButton*>(sender())->text() + "  btn clicked");
 }
 
-
 void MainWindow::on_btnPi_clicked()
 {
     operand = QString::number(M_PI);
+
+    // 记录历史
+    QString message = QString("π");
+    HistoryEntry entry;
+    entry.expression = message;
+    entry.result = operand;
+    entry.mode = "Constant";
+    history.append(entry);
+
     ui->display->setText(operand);
     ui->statusbar->showMessage(qobject_cast<QPushButton*>(sender())->text() + "  btn clicked");
 }
-
 
 void MainWindow::on_btnE_clicked()
 {
     operand = QString::number(M_E);
+
+    // 记录历史
+    QString message = QString("e ");
+    HistoryEntry entry;
+    entry.expression = message;
+    entry.result = operand;
+    entry.mode = "Constant";
+    history.append(entry);
+
     ui->display->setText(operand);
     ui->statusbar->showMessage(qobject_cast<QPushButton*>(sender())->text() + "  btn clicked");
 }
+
 
 
 //程序员模式
@@ -580,6 +652,14 @@ QString MainWindow::bitwiseCalculation() {
         return "Error";  // 未知操作符
     }
 
+    QString message = QString("%1 %2 %3 = %4").arg(a).arg(opcode).arg(b).arg(result);
+    // 记录历史
+    HistoryEntry entry;
+    entry.expression = message;
+    entry.result = QString::number(result);
+    entry.mode = "Programmer"; // 根据当前模式设置
+    history.append(entry);
+
     opcode = "";  // 重置操作符
     return QString::number(result, currentBase).toUpper();  // 返回结果，按当前进制
 }
@@ -671,11 +751,37 @@ QString MainWindow::dateCalculation()
         // 日期加法
         QDate resultDate = date1.addDays(day.toInt());  // 将天数加到 date1 上
         last_num = day;  // 记录当前操作数
+
+        // 记录历史
+        QString message = QString("%1 %2 %3 ")
+                              .arg(date1.toString("yyyy-MM-dd"))  // 操作的起始日期
+                              .arg("+")                        // 操作符（如 "DateSum" 或 "DateSub"）
+                              .arg(day.toInt());                       // 计算的天数
+
+        HistoryEntry entry;
+        entry.expression = message;
+        entry.result = resultDate.toString("yyyy-MM-dd");
+        entry.mode = "Date"; // 根据当前模式设置
+        history.append(entry);
+
         return resultDate.toString("yyyy-MM-dd");  // 返回结果
     } else if (opcode == "DateSub") {
         // 日期减法
         QDate resultDate = date1.addDays(-day.toInt());  // 从 date1 中减去天数
         last_num = day;  // 记录当前操作数
+
+        // 记录历史
+        QString message = QString("%1 %2 %3 ")
+                              .arg(date1.toString("yyyy-MM-dd"))  // 操作的起始日期
+                              .arg("-")                        // 操作符（如 "DateSum" 或 "DateSub"）
+                              .arg(day.toInt());                       // 计算的天数
+
+        HistoryEntry entry;
+        entry.expression = message;
+        entry.result = resultDate.toString("yyyy-MM-dd");
+        entry.mode = "Date"; // 根据当前模式设置
+        history.append(entry);
+
         return resultDate.toString("yyyy-MM-dd");  // 返回结果
     }
 
@@ -691,6 +797,20 @@ void MainWindow::on_btnDateDiff_clicked()
     QDate date2 = ui->dateEdit2->date();
 
     int daysDiff = date1.daysTo(date2);  // 计算两个日期之间的天数差
+
+    // 记录历史
+    QString message = QString("%1 %2 %3 ")
+                          .arg(date2.toString("yyyy-MM-dd"))  // 操作的起始日期
+                          .arg("-")                        // 操作符（如 "DateSum" 或 "DateSub"）
+                          .arg(date1.toString("yyyy-MM-dd"));                       // 计算的天数
+
+    HistoryEntry entry;
+    entry.expression = message;
+    entry.result = QString::number(daysDiff);  // 将结果转换为字符串
+    entry.mode = "Date"; // 根据当前模式设置
+    history.append(entry);
+
+
     ui->display->setText(QString::number(daysDiff));  // 显示结果
 }
 
@@ -794,5 +914,35 @@ void MainWindow::on_btnConvert_clicked()
     } else {
         ui->labelCurrencyResult->setText("Conversion rate not available.");
     }
+}
+
+//历史记录
+void MainWindow::on_pushButton_3_clicked()      //历史记录界面跳转
+{
+    ui->stackedWidget->setCurrentIndex(2);
+    on_btnUpdataHistory_clicked();  // 更新历史记录显示
+}
+
+
+void MainWindow::on_btnback_clicked()
+{
+    ui->stackedWidget->setCurrentIndex(0);
+}
+
+
+void MainWindow::on_btnUpdataHistory_clicked()
+{
+    ui->historyListWidget->clear();
+    for (const auto& entry : history) {
+        QString itemText = QString("%1 = %2 (%3)").arg(entry.expression).arg(entry.result).arg(entry.mode);
+        new QListWidgetItem(itemText, ui->historyListWidget);
+    }
+}
+
+
+void MainWindow::on_btnHistoryClear_clicked()
+{
+    history.clear();
+    on_btnUpdataHistory_clicked();
 }
 
