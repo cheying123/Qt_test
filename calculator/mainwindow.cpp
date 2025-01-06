@@ -43,6 +43,43 @@ MainWindow::MainWindow(QWidget *parent)
         connect(btn,SIGNAL(clicked()),this,SLOT(btnNumClicked()));      //每一个都过一遍，但只有点击那个才能响应
     }
 
+
+    // 初始化汇率表
+    exchangeRates = {
+        {"USD->CNY", 7.2},    // 美元 -> 人民币
+        {"CNY->USD", 0.14},   // 人民币 -> 美元
+        {"USD->EUR", 0.92},   // 美元 -> 欧元
+        {"EUR->USD", 1.09},   // 欧元 -> 美元
+        {"CNY->EUR", 0.13},   // 人民币 -> 欧元
+        {"EUR->CNY", 7.5}     // 欧元 -> 人民币
+    };
+
+    // 初始化金额 ComboBox
+    ui->comboBoxCurrencyFrom->addItems({"USD", "CNY", "EUR"});
+    ui->comboBoxCurrencyTo->addItems({"USD", "CNY", "EUR"});
+
+    // 设置默认值
+    ui->comboBoxCurrencyFrom->setCurrentText("USD");
+    ui->comboBoxCurrencyTo->setCurrentText("CNY");
+
+
+    // 初始化转换表表
+    exchanges = {
+        {"L->ml", 1000.0},     // 升 -> 毫升
+        {"ml->L", 0.001},      // 毫升 -> 升
+        {"L->gal", 0.264172},   // 升 -> 加仑
+        {"gal->L", 3.78541},    // 加仑 -> 升
+        {"ml->gal", 0.000264172}, // 毫升 -> 加仑
+        {"gal->ml", 3785.41}    // 加仑 -> 毫升
+    };
+    // 初始化金额 ComboBox
+    ui->comboBoxFrom->addItems({"ml", "L", "gal"});
+    ui->comboBoxTo->addItems({"ml", "L", "gal"});
+
+    // 设置默认值
+    ui->comboBoxCurrencyFrom->setCurrentText("L");
+    ui->comboBoxCurrencyTo->setCurrentText("ml");
+
 }
 
 MainWindow::~MainWindow()
@@ -659,6 +696,103 @@ void MainWindow::on_btnDateDiff_clicked()
 
 
 
+void MainWindow::onConvertClicked(){}       //废弃
+void MainWindow::onSaveRateClicked(){}      //废弃
+
+void MainWindow::on_btnChangeMoney_clicked()
+{
+    ui->stackedWidget->setCurrentIndex(1);
+}
 
 
+void MainWindow::on_pushButton_clicked()
+{
+    ui->stackedWidget->setCurrentIndex(0);
+}
+
+
+void MainWindow::on_btnConvertCurrency_clicked()
+{
+    QString fromCurrency = ui->comboBoxCurrencyFrom->currentText();  // 获取源货币
+    QString toCurrency = ui->comboBoxCurrencyTo->currentText();      // 获取目标货币
+    QString key = fromCurrency + "->" + toCurrency;          // 生成汇率表键值
+
+    // 检查源货币与目标货币是否相同
+    if (fromCurrency == toCurrency) {
+        ui->lineMoneyEdit2->setText(ui->lineMoneyEdit->text());  // 金额直接复制到目标输入框
+        return;
+    }
+
+    // 检查输入金额是否合法
+    double amount = ui->lineMoneyEdit->text().toDouble();
+    if (amount <= 0) {
+        QMessageBox::warning(this, "Invalid Input", "Please enter a valid amount.");
+        return;
+    }
+
+    // 查找汇率并计算
+    if (exchangeRates.contains(key)) {
+        double rate = exchangeRates[key];
+        double convertedAmount = amount * rate;
+        // 在 QLineEdit 中显示转换结果
+        ui->lineMoneyEdit2->setText(QString::number(convertedAmount, 'f', 2));  // 显示结果，保留两位小数
+
+        ui->labelCurrencyResult->setText(QString("Converted Amount: %1 %2").arg(convertedAmount).arg(toCurrency));
+    } else {
+        ui->labelCurrencyResult->setText("Conversion rate not available.");
+    }
+}
+
+
+void MainWindow::on_btnSetCustomRate_clicked()
+{
+    QString fromCurrency = ui->comboBoxCurrencyFrom->currentText();  // 获取源货币
+    QString toCurrency = ui->comboBoxCurrencyTo->currentText();      // 获取目标货币
+    QString key = fromCurrency + "->" + toCurrency;          // 生成汇率表键值
+
+    // 检查输入的汇率是否合法
+    double customRate = ui->lineMoneyEdit2->text().toDouble();
+    if (customRate <= 0) {
+        QMessageBox::warning(this, "Invalid Rate", "Please enter a valid exchange rate.");
+        return;
+    }
+
+    // 更新汇率表
+    exchangeRates[key] = customRate;
+    QMessageBox::information(this, "Rate Saved", QString("Custom rate saved: 1 %1 = %2 %3")
+                                                     .arg(fromCurrency).arg(customRate).arg(toCurrency));
+}
+
+//容量单位转换
+void MainWindow::on_btnConvert_clicked()
+{
+    QString from = ui->comboBoxFrom->currentText();  // 获取源单位
+    QString to = ui->comboBoxTo->currentText();      // 获取目标单位
+    QString key = from + "->" + to;          // 生成单位表键值
+
+    // 检查源货币与目标货币是否相同
+    if (from== to) {
+        ui->lineEdit2->setText(ui->lineEdit->text());  // 数量直接复制到目标输入框
+        return;
+    }
+
+    // 检查输入金额是否合法
+    double amount = ui->lineEdit->text().toDouble();
+    if (amount <= 0) {
+        QMessageBox::warning(this, "Invalid Input", "Please enter a valid amount.");
+        return;
+    }
+
+    // 查找汇率并计算
+    if (exchanges.contains(key)) {
+        double rate = exchanges[key];
+        double convertedAmount = amount * rate;
+        // 在 QLineEdit 中显示转换结果
+        ui->lineEdit2->setText(QString::number(convertedAmount, 'f', 5));  // 显示结果，保留5位小数
+
+        ui->labelResult->setText(QString("Converted Amount: %1 %2").arg(convertedAmount).arg(to));
+    } else {
+        ui->labelCurrencyResult->setText("Conversion rate not available.");
+    }
+}
 

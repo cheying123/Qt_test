@@ -6,6 +6,7 @@
 #include <Qstack>
 #include <QMap>
 #include <QPushButton>
+#include <QMessageBox>
 
 #include <QKeyEvent>
 
@@ -134,9 +135,25 @@ private slots:
     void on_btnDataMode_clicked();
 
     QString dateCalculation();
+    void on_btnChangeMoney_clicked();
+
+    void on_pushButton_clicked();
+
+    void on_btnConvertCurrency_clicked();
+
+    void on_btnSetCustomRate_clicked();
+
+    //汇率转换
+    void onConvertClicked();    // 转换按钮点击事件
+    void onSaveRateClicked();   // 保存汇率按钮点击事件
+
+    void on_btnConvert_clicked();
+
 private:
     Ui::MainWindow *ui;
 
     QString convertBase(QString value, int fromBase, int toBase); // 进制转换函数
+    QMap<QString, double> exchangeRates;  // 汇率表
+    QMap<QString, double> exchanges;       //单位表
 };
 #endif // MAINWINDOW_H
