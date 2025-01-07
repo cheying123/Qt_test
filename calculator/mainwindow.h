@@ -17,6 +17,12 @@
 
 #include <QDate>
 
+//语言包
+#include <QTranslator>
+#include <QLocale>
+#include <QApplication>
+
+
 QT_BEGIN_NAMESPACE
 namespace Ui {
 class MainWindow;
@@ -157,6 +163,11 @@ private slots:
 
     void on_btnHistoryClear_clicked();
 
+    //语言装换
+    void changeLanguage(const QString &languageCode);
+
+    void on_languageComboBox_currentTextChanged(const QString &arg1);
+
 private:
     Ui::MainWindow *ui;
 
@@ -171,5 +182,9 @@ private:
         QString mode;
     };
     QList<HistoryEntry> history;
+
+
+    QTranslator translator;
+
 };
 #endif // MAINWINDOW_H

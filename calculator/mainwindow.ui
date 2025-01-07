@@ -10,6 +10,11 @@
     <height>807</height>
    </rect>
   </property>
+  <property name="font">
+   <font>
+    <hintingpreference>PreferDefaultHinting</hintingpreference>
+   </font>
+  </property>
   <property name="windowTitle">
    <string>计算器_黄文轩2022414120108</string>
   </property>
@@ -33,7 +38,7 @@ QLineEdit{
     <item row="0" column="0">
      <widget class="QStackedWidget" name="stackedWidget">
       <property name="currentIndex">
-       <number>2</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="page">
        <layout class="QGridLayout" name="gridLayout_9">
@@ -392,6 +397,12 @@ QLineEdit{
                 <verstretch>0</verstretch>
                </sizepolicy>
               </property>
+              <property name="font">
+               <font>
+                <pointsize>16</pointsize>
+                <hintingpreference>PreferDefaultHinting</hintingpreference>
+               </font>
+              </property>
               <property name="text">
                <string>SCM</string>
               </property>
@@ -404,6 +415,11 @@ QLineEdit{
                 <horstretch>0</horstretch>
                 <verstretch>0</verstretch>
                </sizepolicy>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">QPushButton{
+    font-size:13pt;
+}</string>
               </property>
               <property name="text">
                <string>PM</string>
@@ -428,7 +444,7 @@ QLineEdit{
           <item>
            <widget class="QGroupBox" name="groupScientific">
             <property name="title">
-             <string>科学模式</string>
+             <string>ScienceMode</string>
             </property>
             <layout class="QGridLayout" name="gridLayout_2">
              <property name="leftMargin">
@@ -560,7 +576,7 @@ QLineEdit{
           <item>
            <widget class="QGroupBox" name="groupProgrammer">
             <property name="title">
-             <string>程序员模式</string>
+             <string>ProgramerMode</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
@@ -701,7 +717,7 @@ QLineEdit{
           <item>
            <widget class="QGroupBox" name="groupDate">
             <property name="title">
-             <string>日期计算模式</string>
+             <string>DateMode</string>
             </property>
             <layout class="QGridLayout" name="gridLayout_4">
              <property name="leftMargin">
@@ -780,9 +796,12 @@ QLineEdit{
         <item row="7" column="0">
          <widget class="QPushButton" name="pushButton_3">
           <property name="text">
-           <string>History</string>
+           <string>history</string>
           </property>
          </widget>
+        </item>
+        <item row="7" column="1" rowspan="2">
+         <widget class="QComboBox" name="languageComboBox"/>
         </item>
        </layout>
       </widget>

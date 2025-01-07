@@ -2,6 +2,10 @@ QT       += core gui
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
+
+TRANSLATIONS += resource/language/lang_zh_CN.ts\
+                resource/language/lang_en.ts
+
 CONFIG += c++17
 
 # You can make your code fail to compile if it uses deprecated APIs.

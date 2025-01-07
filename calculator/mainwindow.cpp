@@ -80,6 +80,14 @@ MainWindow::MainWindow(QWidget *parent)
     ui->comboBoxCurrencyFrom->setCurrentText("L");
     ui->comboBoxCurrencyTo->setCurrentText("ml");
 
+    //语言切换设置
+    ui->languageComboBox->addItems({"中文","English"});
+
+    // 设置默认语言为英文
+    changeLanguage("en");
+
+    // 设置语言选择框默认值
+    ui->languageComboBox->setCurrentText("English");
 }
 
 MainWindow::~MainWindow()
@@ -134,7 +142,6 @@ QString MainWindow::calculation(){                          //计算处理
 
     return QString::number(result);
 }
-
 
 void MainWindow::on_btnEqual_clicked()                      // "="的处理
 {
@@ -944,5 +951,48 @@ void MainWindow::on_btnHistoryClear_clicked()
 {
     history.clear();
     on_btnUpdataHistory_clicked();
+}
+
+// -----------------------语言装换------------------------------------------
+
+void MainWindow::changeLanguage(const QString &languageCode) {
+    // 卸载之前的翻译
+    qApp->removeTranslator(&translator);
+
+    // 设置翻译文件路径
+    QString translationFile;
+    if (languageCode == "zh_CN") {
+        translationFile = "D:/Qt_work/fin_work/calculator/resource/language/lang_zh_CN.qm";
+    } else if (languageCode == "en") {
+        translationFile = "D:/Qt_work/fin_work/calculator/resource/language/lang_en.qm";
+    } else {
+        qDebug() << "Unsupported language code: " << languageCode;
+        return;
+    }
+
+    // 加载新的翻译文件
+    if (translator.load(translationFile)) {
+        qApp->installTranslator(&translator);
+
+        // 更新界面翻译
+        ui->retranslateUi(this);
+
+        qDebug() << "转换完成";
+
+    } else {
+        qDebug() << "Failed to load translation file: " << translationFile;
+    }
+}
+
+
+
+
+void MainWindow::on_languageComboBox_currentTextChanged(const QString &language)
+{
+    if (language == "English") {
+        changeLanguage("en");
+    } else if (language == "中文") {
+        changeLanguage("zh_CN");
+    }
 }
 
