@@ -21,7 +21,15 @@
 #include <QTranslator>
 #include <QLocale>
 #include <QApplication>
+#include <QDir>
 
+//日夜间模式切换
+#include <QApplication>
+#include <QStyleFactory>
+
+#include <QColor>
+#include <QColorDialog>
+#include <QSettings>
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -54,6 +62,8 @@ public:
     bool isDateMode;            // 日期计算模式
 
     int currentBase;            // 表示当前进制（2=二进制，8=八进制，10=十进制，16=十六进制）
+
+    bool isNightMode;           //存储
 
 private slots:
     void on_btnEqual_clicked();
@@ -167,6 +177,14 @@ private slots:
     void changeLanguage(const QString &languageCode);
 
     void on_languageComboBox_currentTextChanged(const QString &arg1);
+
+    void on_btnDayNight_clicked();
+
+    void on_btnback_2_clicked();
+
+    void on_btnCustomize_clicked();
+
+    void on_btnBackgroundColor_clicked();
 
 private:
     Ui::MainWindow *ui;

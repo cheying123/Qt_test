@@ -556,7 +556,7 @@ void MainWindow::on_btnBase2_clicked()
         currentBase = 2;                                       //修改当前进制
         ui->display->setText(operand);                         //展示出来
 
-        ui->statusbar->showMessage("已经切换到2进制");
+        ui->statusbar->showMessage(tr("已经切换到2进制"));
     }
 }
 
@@ -569,7 +569,7 @@ void MainWindow::on_btnBase8_clicked()
         currentBase = 8;                                       //修改当前进制
         ui->display->setText(operand);                         //展示出来
 
-        ui->statusbar->showMessage("已经切换到8进制");
+        ui->statusbar->showMessage(tr("已经切换到8进制"));
     }
 }
 
@@ -581,7 +581,7 @@ void MainWindow::on_btnBase10_clicked()
         currentBase = 10;                                       //修改当前进制
         ui->display->setText(operand);                         //展示出来
 
-        ui->statusbar->showMessage("已经切换到10进制");
+        ui->statusbar->showMessage(tr("已经切换到10进制"));
     }
 }
 
@@ -593,7 +593,7 @@ void MainWindow::on_btnBase16_clicked()
         currentBase = 16;                                       //修改当前进制
         ui->display->setText(operand);                         //展示出来
 
-        ui->statusbar->showMessage("已经切换到16进制");
+        ui->statusbar->showMessage(tr("已经切换到16进制"));
     }
 }
 
@@ -864,9 +864,9 @@ void MainWindow::on_btnConvertCurrency_clicked()
         // 在 QLineEdit 中显示转换结果
         ui->lineMoneyEdit2->setText(QString::number(convertedAmount, 'f', 2));  // 显示结果，保留两位小数
 
-        ui->labelCurrencyResult->setText(QString("Converted Amount: %1 %2").arg(convertedAmount).arg(toCurrency));
+        ui->labelCurrencyResult->setText(tr("Converted Amount: %1 %2").arg(convertedAmount).arg(toCurrency));
     } else {
-        ui->labelCurrencyResult->setText("Conversion rate not available.");
+        ui->labelCurrencyResult->setText(tr("Conversion rate not available."));
     }
 }
 
@@ -917,7 +917,7 @@ void MainWindow::on_btnConvert_clicked()
         // 在 QLineEdit 中显示转换结果
         ui->lineEdit2->setText(QString::number(convertedAmount, 'f', 5));  // 显示结果，保留5位小数
 
-        ui->labelResult->setText(QString("Converted Amount: %1 %2").arg(convertedAmount).arg(to));
+        ui->labelResult->setText(tr("Converted Amount: %1 %2").arg(convertedAmount).arg(to));
     } else {
         ui->labelCurrencyResult->setText("Conversion rate not available.");
     }
@@ -959,12 +959,14 @@ void MainWindow::changeLanguage(const QString &languageCode) {
     // 卸载之前的翻译
     qApp->removeTranslator(&translator);
 
-    // 设置翻译文件路径
+    // 获取程序当前可执行文件的路径
+    QString basePath = QCoreApplication::applicationDirPath(); // 可执行文件所在目录
     QString translationFile;
+
     if (languageCode == "zh_CN") {
-        translationFile = "D:/Qt_work/fin_work/calculator/resource/language/lang_zh_CN.qm";
+        translationFile = QDir::cleanPath(basePath + "/../resource/language/lang_zh_CN.qm"); // 规范化路径
     } else if (languageCode == "en") {
-        translationFile = "D:/Qt_work/fin_work/calculator/resource/language/lang_en.qm";
+        translationFile = QDir::cleanPath(basePath + "/../resource/language/lang_en.qm"); // 规范化路径
     } else {
         qDebug() << "Unsupported language code: " << languageCode;
         return;
@@ -977,12 +979,13 @@ void MainWindow::changeLanguage(const QString &languageCode) {
         // 更新界面翻译
         ui->retranslateUi(this);
 
-        qDebug() << "转换完成";
-
+        qDebug() << "语言切换成功：" << languageCode;
     } else {
         qDebug() << "Failed to load translation file: " << translationFile;
     }
 }
+
+
 
 
 
@@ -995,4 +998,97 @@ void MainWindow::on_languageComboBox_currentTextChanged(const QString &language)
         changeLanguage("zh_CN");
     }
 }
+
+
+void MainWindow::on_btnDayNight_clicked()
+{
+    // 使用按钮的属性来记录当前是否是夜间模式
+    bool isNightMode = ui->btnDayNight->property("isNightMode").toBool();
+
+    // 获取当前样式表
+    QString currentStyle = this->styleSheet();
+
+    // 正则表达式，用于清理旧的样式
+    QRegularExpression bgColorRegex("background-color:[^;]+;");
+    QRegularExpression textColorRegex("color:[^;]+;");
+    QRegularExpression buttonStyleRegex("QPushButton\\s*\\{[^\\}]*\\}");
+
+    // 移除旧的背景颜色、字体颜色样式以及按钮样式
+    currentStyle.remove(bgColorRegex);
+    currentStyle.remove(textColorRegex);
+    currentStyle.remove(buttonStyleRegex);
+
+    if (isNightMode)
+    {
+        // 白天模式
+        currentStyle = currentStyle +
+            "QMainWindow { background-color: white; color: black; }" +
+            "QPushButton { background-color: white; color: black;  border: 1px solid gray;font-size:14pt;}"+
+            "QPushButton::hover { background-color: green; }"+
+            "QPushButton::pressed { background-color: red; }"
+        ;
+        ui->btnDayNight->setText(tr("夜间模式"));
+        ui->btnDayNight->setProperty("isNightMode", false);
+    }
+    else
+    {
+        // 夜间模式
+        currentStyle = currentStyle +
+            "QMainWindow { background-color: #333; color: white; }" +
+            "QPushButton { background-color: #444; color: white; font-size:14pt;}" +
+            "QPushButton::hover { background-color: green; }" +
+            "QPushButton::pressed { background-color: red; }"
+        ;
+        ui->btnDayNight->setText(tr("白天模式"));
+        ui->btnDayNight->setProperty("isNightMode", true);
+    }
+
+    // 更新样式表
+    this->setStyleSheet(currentStyle);
+
+    // 更新界面以应用新的样式
+    this->update();
+}
+
+
+
+//自定义
+
+void MainWindow::on_btnback_2_clicked()
+{
+    ui->stackedWidget->setCurrentIndex(0);
+}
+
+
+void MainWindow::on_btnCustomize_clicked()
+{
+    ui->stackedWidget->setCurrentIndex(3);
+}
+
+
+void MainWindow::on_btnBackgroundColor_clicked()
+{
+    // 打开颜色选择对话框
+    QColor color = QColorDialog::getColor(Qt::white, this, "选择背景颜色");
+    if (color.isValid())
+    {
+        // 构造新的样式，仅修改 QMainWindow 的背景颜色
+        QString newStyle = QString("QMainWindow { background-color: %1; }").arg(color.name());
+
+        // 将新的样式追加到现有样式表中
+        QString currentStyleSheet = this->styleSheet();
+
+        // 移除已有的背景颜色（避免重复）
+        QRegularExpression regex("QMainWindow\\s*\\{[^\\}]*background-color:[^;]*;[^\\}]*\\}");
+        currentStyleSheet.remove(regex);
+
+        // 追加新的背景颜色样式
+        this->setStyleSheet(currentStyleSheet + newStyle);
+
+        // 保存背景颜色
+        QSettings settings("MyCompany", "MyApp");
+        settings.setValue("backgroundColor", color.name());
+    }
+}
+
 
