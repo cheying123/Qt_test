@@ -62,6 +62,10 @@ MainWindow::MainWindow(QWidget *parent)
     ui->comboBoxCurrencyFrom->setCurrentText("USD");
     ui->comboBoxCurrencyTo->setCurrentText("CNY");
 
+    // 初始化网络管理器
+    networkManager = new QNetworkAccessManager(this);
+
+
 
     // 初始化转换表表
     exchanges = {
@@ -88,6 +92,9 @@ MainWindow::MainWindow(QWidget *parent)
 
     // 设置语言选择框默认值
     ui->languageComboBox->setCurrentText("English");
+
+    // 加载用户设置
+    loadUserSettings();
 }
 
 MainWindow::~MainWindow()
@@ -842,7 +849,7 @@ void MainWindow::on_btnConvertCurrency_clicked()
 {
     QString fromCurrency = ui->comboBoxCurrencyFrom->currentText();  // 获取源货币
     QString toCurrency = ui->comboBoxCurrencyTo->currentText();      // 获取目标货币
-    QString key = fromCurrency + "->" + toCurrency;          // 生成汇率表键值
+    QString key = fromCurrency + "->" + toCurrency;                 // 生成汇率表键值
 
     // 检查源货币与目标货币是否相同
     if (fromCurrency == toCurrency) {
@@ -853,22 +860,49 @@ void MainWindow::on_btnConvertCurrency_clicked()
     // 检查输入金额是否合法
     double amount = ui->lineMoneyEdit->text().toDouble();
     if (amount <= 0) {
-        QMessageBox::warning(this, "Invalid Input", "Please enter a valid amount.");
+        QMessageBox::warning(this, "Invalid Input", "请输入有效金额！");
         return;
     }
 
-    // 查找汇率并计算
-    if (exchangeRates.contains(key)) {
-        double rate = exchangeRates[key];
-        double convertedAmount = amount * rate;
-        // 在 QLineEdit 中显示转换结果
-        ui->lineMoneyEdit2->setText(QString::number(convertedAmount, 'f', 2));  // 显示结果，保留两位小数
+    // 填写您的 API 密钥
+    QString apiKey = "51f43aa5be8ee16565ec7184"; // 替换为您的实际API密钥
 
-        ui->labelCurrencyResult->setText(tr("Converted Amount: %1 %2").arg(convertedAmount).arg(toCurrency));
-    } else {
-        ui->labelCurrencyResult->setText(tr("Conversion rate not available."));
-    }
+    // 构造 API URL
+    QString apiUrl = QString("https://v6.exchangerate-api.com/v6/%1/latest/%2")
+                         .arg(apiKey)
+                         .arg(fromCurrency);
+
+    QUrl url(apiUrl); // 构造 QUrl 对象
+    QNetworkRequest request(url); // 用 QUrl 构造 QNetworkRequest
+
+    // 发送网络请求
+    QNetworkReply *reply = networkManager->get(request);
+
+    // 处理网络请求完成的信号
+    connect(reply, &QNetworkReply::finished, this, [=]() {
+        if (reply->error() == QNetworkReply::NoError) {
+            QByteArray response = reply->readAll();
+            QJsonDocument jsonDoc = QJsonDocument::fromJson(response);
+            QJsonObject jsonObj = jsonDoc.object();
+
+            if (jsonObj.contains("conversion_rates")) {
+                QJsonObject rates = jsonObj.value("conversion_rates").toObject();
+                if (rates.contains(toCurrency)) {
+                    double rate = rates.value(toCurrency).toDouble(); // 获取目标货币的汇率
+                    double convertedAmount = amount * rate;
+                    ui->lineMoneyEdit2->setText(QString::number(convertedAmount, 'f', 2));
+                    ui->labelCurrencyResult->setText(
+                        tr("实时汇率：1 %1 = %2 %3").arg(fromCurrency).arg(rate).arg(toCurrency));
+                }
+            }
+        } else {
+            QMessageBox::warning(this, "Error", "无法获取实时汇率，请检查网络连接！");
+        }
+        reply->deleteLater(); // 释放内存
+    });
 }
+
+
 
 
 void MainWindow::on_btnSetCustomRate_clicked()
@@ -1002,53 +1036,51 @@ void MainWindow::on_languageComboBox_currentTextChanged(const QString &language)
 
 void MainWindow::on_btnDayNight_clicked()
 {
-    // 使用按钮的属性来记录当前是否是夜间模式
+    // 使用按钮的属性记录当前是否是夜间模式
     bool isNightMode = ui->btnDayNight->property("isNightMode").toBool();
 
-    // 获取当前样式表
-    QString currentStyle = this->styleSheet();
+    // 获取当前背景颜色样式（如果存在自定义背景颜色，保留）
+    QString currentBackgroundColor;
+    QRegularExpression bgColorRegex("background-color:([^;]+);");
+    QRegularExpressionMatch match = bgColorRegex.match(this->styleSheet());
+    if (match.hasMatch()) {
+        currentBackgroundColor = match.captured(1);
+    } else {
+        currentBackgroundColor = isNightMode ? "white" : "#333"; // 默认颜色
+    }
 
-    // 正则表达式，用于清理旧的样式
-    QRegularExpression bgColorRegex("background-color:[^;]+;");
-    QRegularExpression textColorRegex("color:[^;]+;");
-    QRegularExpression buttonStyleRegex("QPushButton\\s*\\{[^\\}]*\\}");
-
-    // 移除旧的背景颜色、字体颜色样式以及按钮样式
-    currentStyle.remove(bgColorRegex);
-    currentStyle.remove(textColorRegex);
-    currentStyle.remove(buttonStyleRegex);
-
-    if (isNightMode)
-    {
-        // 白天模式
-        currentStyle = currentStyle +
-            "QMainWindow { background-color: white; color: black; }" +
-            "QPushButton { background-color: white; color: black;  border: 1px solid gray;font-size:14pt;}"+
-            "QPushButton::hover { background-color: green; }"+
-            "QPushButton::pressed { background-color: red; }"
-        ;
+    // 更新样式表（仅更新字体颜色和按钮样式，保留背景颜色）
+    QString newStyle;
+    if (isNightMode) {
+        // 切换到白天模式
+        newStyle = QString(
+                       "QMainWindow { background-color: %1; color: black; }"
+                       "QPushButton { background-color: white; color: black; border: 1px solid gray; font-size:14pt; }"
+                       "QPushButton::hover { background-color: green; }"
+                       "QPushButton::pressed { background-color: red; }")
+                       .arg(currentBackgroundColor);
         ui->btnDayNight->setText(tr("夜间模式"));
-        ui->btnDayNight->setProperty("isNightMode", false);
-    }
-    else
-    {
-        // 夜间模式
-        currentStyle = currentStyle +
-            "QMainWindow { background-color: #333; color: white; }" +
-            "QPushButton { background-color: #444; color: white; font-size:14pt;}" +
-            "QPushButton::hover { background-color: green; }" +
-            "QPushButton::pressed { background-color: red; }"
-        ;
+    } else {
+        // 切换到夜间模式
+        newStyle = QString(
+                       "QMainWindow { background-color: %1; color: white; }"
+                       "QPushButton { background-color: #444; color: white; font-size:14pt; }"
+                       "QPushButton::hover { background-color: green; }"
+                       "QPushButton::pressed { background-color: red; }")
+                       .arg(currentBackgroundColor);
         ui->btnDayNight->setText(tr("白天模式"));
-        ui->btnDayNight->setProperty("isNightMode", true);
     }
 
-    // 更新样式表
-    this->setStyleSheet(currentStyle);
+    // 更新按钮属性
+    ui->btnDayNight->setProperty("isNightMode", !isNightMode);
 
-    // 更新界面以应用新的样式
+    // 应用新的样式表
+    this->setStyleSheet(newStyle);
+
+    // 更新界面以应用新样式
     this->update();
 }
+
 
 
 
@@ -1072,23 +1104,77 @@ void MainWindow::on_btnBackgroundColor_clicked()
     QColor color = QColorDialog::getColor(Qt::white, this, "选择背景颜色");
     if (color.isValid())
     {
-        // 构造新的样式，仅修改 QMainWindow 的背景颜色
-        QString newStyle = QString("QMainWindow { background-color: %1; }").arg(color.name());
-
-        // 将新的样式追加到现有样式表中
+        // 获取当前样式表
         QString currentStyleSheet = this->styleSheet();
 
-        // 移除已有的背景颜色（避免重复）
-        QRegularExpression regex("QMainWindow\\s*\\{[^\\}]*background-color:[^;]*;[^\\}]*\\}");
-        currentStyleSheet.remove(regex);
+        // 替换或追加背景颜色样式
+        QRegularExpression bgColorRegex("background-color:([^;]+);");
+        if (bgColorRegex.match(currentStyleSheet).hasMatch()) {
+            currentStyleSheet.replace(bgColorRegex, QString("background-color: %1;").arg(color.name()));
+        } else {
+            currentStyleSheet += QString("QMainWindow { background-color: %1; }").arg(color.name());
+        }
 
-        // 追加新的背景颜色样式
-        this->setStyleSheet(currentStyleSheet + newStyle);
+        // 应用新的样式表
+        this->setStyleSheet(currentStyleSheet);
 
-        // 保存背景颜色
+        // 保存背景颜色到用户设置
         QSettings settings("MyCompany", "MyApp");
         settings.setValue("backgroundColor", color.name());
     }
 }
+
+void MainWindow::on_btnTextColor_clicked(){}    //暂时废弃
+
+
+void MainWindow::on_fontSizeSlider_valueChanged(int value)
+{
+    QString buttonStyle = QString(
+                              "QPushButton { font-size: %1pt; background-color: white; color: black; border: 1px solid gray; }"
+                              "QPushButton::hover { background-color: green; }"
+                              "QPushButton::pressed { background-color: red; }"
+                              ).arg(value);
+
+    // 获取当前样式表
+    QString currentStyle = this->styleSheet();
+
+    // 删除旧的按钮样式
+    currentStyle.remove(QRegularExpression("QPushButton\\s*\\{[^\\}]*font-size:[^;]+;[^\\}]*\\}"));
+
+    // 添加新的按钮样式
+    currentStyle += buttonStyle;
+
+    // 更新样式表
+    this->setStyleSheet(currentStyle);
+
+    // 保存设置
+    QSettings settings("MyCompany", "MyApp");
+    settings.setValue("fontSize", value);
+}
+
+//加载用户设置
+void MainWindow::loadUserSettings()
+{
+    QSettings settings("MyCompany", "MyApp");
+
+    // 加载背景颜色
+    QString bgColor = settings.value("backgroundColor", "#ffffff").toString();
+    QString newStyle = QString("QMainWindow { background-color: %1; }").arg(bgColor);
+
+    // 加载字体大小
+    int fontSize = settings.value("fontSize", 14).toInt();
+
+    // 更新按钮样式
+    on_fontSizeSlider_valueChanged(fontSize);
+
+    // 应用样式表
+    this->setStyleSheet(newStyle);
+
+    // 更新滑块位置
+    ui->fontSizeSlider->setValue(fontSize);
+}
+
+
+
 
 

@@ -17,6 +17,18 @@
 
 #include <QDate>
 
+//网络包
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
+#include <QNetworkRequest>
+#include <QUrl>
+
+
+
 //语言包
 #include <QTranslator>
 #include <QLocale>
@@ -186,12 +198,20 @@ private slots:
 
     void on_btnBackgroundColor_clicked();
 
+    void on_btnTextColor_clicked();
+
+    void on_fontSizeSlider_valueChanged(int value);
+
+    void loadUserSettings();
+
 private:
     Ui::MainWindow *ui;
 
     QString convertBase(QString value, int fromBase, int toBase); // 进制转换函数
     QMap<QString, double> exchangeRates;  // 汇率表
     QMap<QString, double> exchanges;       //单位表
+
+    QNetworkAccessManager *networkManager; // 用于发送网络请求
 
 
     struct HistoryEntry {
